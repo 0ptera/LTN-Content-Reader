@@ -1,0 +1,28 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.3
+Date: 4.12.2018
+  Features:
+    - added provider content reader
+    - added requester content reader
+    - removed content reader
+---------------------------------------------------------------------------------------------------
+Version: 0.1.2
+Date: 1.12.2018
+  Bugfixes:
+    - migration script referenced wrong recipe name  
+---------------------------------------------------------------------------------------------------
+Version: 0.1.1
+Date: 1.12.2018
+  Features:
+    - recolored content readers to green
+    - update interval mod setting for performance tuning
+  Changes:
+    - renamed entity, item and recipe from ltn-contents-combinator to ltn-content-reader
+  Bugfixes:
+    - on_tick wasn't re-registered in on_load
+    - network id from blueprint was overwritten by default -1
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 30.11.2018
+  Features:
+    - initial release

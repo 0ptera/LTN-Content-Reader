@@ -75,6 +75,7 @@ end
 function Update_Combinator(combinator)
   -- get network id from combinator parameters
   local first_signal = combinator.get_control_behavior().get_signal(1)
+  local max_signals = combinator.get_control_behavior().signals_count
   local selected_networkID = -1
 
   if first_signal and first_signal.signal and first_signal.signal.name == "ltn-network-id" then
@@ -83,9 +84,8 @@ function Update_Combinator(combinator)
     log("Error: combinator must have ltn-network-id set at index 1. Setting network id to -1 (any).")
   end
 
-  local index = 1
   local signals = { { index = 1, signal = {type="virtual", name="ltn-network-id"}, count = selected_networkID } }
-
+  local index = 2
 
   -- for many signals performance is better to aggregate first instead of letting factorio do it
   local items = {}
@@ -118,12 +118,17 @@ function Update_Combinator(combinator)
   for item, count in pairs(items) do
     local itype, iname = string_match(item, "([^,]+),([^,]+)")
     if itype and iname and (game.item_prototypes[iname] or game.fluid_prototypes[iname]) then
-      index = index+1
-      signals[#signals+1] = {index = index, signal = {type=itype, name=iname}, count = count}
-      -- table.insert(signals, {index = index, signal = {type=itype, name=iname}, count = count})
+      if max_signals >= index then
+        signals[#signals+1] = {index = index, signal = {type=itype, name=iname}, count = count}
+        index = index+1
+      else
+        log( "Error: signals in network "..selected_networkID.." exceed "..max_signals.." combinator signal slots. Not all signals will be displayed." )
+        break
+      end
     end
   end
   combinator.get_control_behavior().parameters = { parameters = signals }
+
 end
 
 

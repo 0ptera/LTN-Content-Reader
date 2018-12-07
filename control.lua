@@ -119,14 +119,17 @@ function Update_Combinator(combinator)
     local itype, iname = string_match(item, "([^,]+),([^,]+)")
     if itype and iname and (game.item_prototypes[iname] or game.fluid_prototypes[iname]) then
       if max_signals >= index then
+        if count >  2147483647 then count =  2147483647 end
+        if count < -2147483648 then count = -2147483648 end
         signals[#signals+1] = {index = index, signal = {type=itype, name=iname}, count = count}
         index = index+1
       else
-        log( "Error: signals in network "..selected_networkID.." exceed "..max_signals.." combinator signal slots. Not all signals will be displayed." )
+        log("[LTN Content Reader] Error: signals in network "..selected_networkID.." exceed "..max_signals.." combinator signal slots. Not all signals will be displayed.")
         break
       end
     end
   end
+  -- log("DEBUG: signals = "..serpent.block(signals) )
   combinator.get_control_behavior().parameters = { parameters = signals }
 
 end

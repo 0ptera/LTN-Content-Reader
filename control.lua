@@ -3,6 +3,16 @@
 -- setting UpdateInterval to <= 60 ensures all combinators are updated between each trigger of OnDispatcherUpdated
 local UpdateInterval = settings.global["ltn_content_reader_update_interval"].value
 
+-- localize often used functions and strings
+local match = string.match
+local match_string = "([^,]+),([^,]+)"
+local btest = bit32.btest 
+local signal_networkID = {type="virtual", name="ltn-network-id"}
+local provider_reader = "ltn-provider-reader"
+local requester_reader = "ltn-requester-reader"
+
+
+-- MOD Setting handler
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
   if event.setting == "ltn_content_reader_update_interval" then
     UpdateInterval = settings.global["ltn_content_reader_update_interval"].value
@@ -71,7 +81,6 @@ function OnTick(event)
   end
 end
 
-
 function Update_Combinator(combinator)
   -- get network id from combinator parameters
   local first_signal = combinator.get_control_behavior().get_signal(1)
@@ -84,17 +93,15 @@ function Update_Combinator(combinator)
     log("Error: combinator must have ltn-network-id set at index 1. Setting network id to -1 (any).")
   end
 
-  local signals = { { index = 1, signal = {type="virtual", name="ltn-network-id"}, count = selected_networkID } }
+  local signals = { { index = 1, signal = signal_networkID, count = selected_networkID } }
   local index = 2
 
   -- for many signals performance is better to aggregate first instead of letting factorio do it
-  local items = {}
-  local bit_and = bit32.band
-  local string_match = string.match
+  local items = {} 
 
-  if combinator.name == "ltn-provider-reader" then
+  if combinator.name == provider_reader then
     for networkID, item_data in pairs(global.ltn_provided) do
-      if bit_and(selected_networkID, networkID) ~= 0 then
+      if btest(selected_networkID, networkID) then
         for item, count in pairs(item_data) do
           items[item] = (items[item] or 0) + count
         end
@@ -102,9 +109,9 @@ function Update_Combinator(combinator)
     end
   end
 
-  if combinator.name == "ltn-requester-reader" then
+  if combinator.name == requester_reader then
     for networkID, item_data in pairs(global.ltn_requested) do
-      if bit_and(selected_networkID, networkID) ~= 0 then
+      if btest(selected_networkID, networkID) then
         for item, count in pairs(item_data) do
           items[item] = (items[item] or 0) + count
         end
@@ -116,7 +123,7 @@ function Update_Combinator(combinator)
 
   -- generate signals from aggregated item list
   for item, count in pairs(items) do
-    local itype, iname = string_match(item, "([^,]+),([^,]+)")
+    local itype, iname = match(item, match_string)
     if itype and iname and (game.item_prototypes[iname] or game.fluid_prototypes[iname]) then
       if max_signals >= index then
         if count >  2147483647 then count =  2147483647 end
@@ -138,11 +145,11 @@ end
 -- add/remove event handlers
 function OnEntityCreated(event)
   local entity = event.created_entity
-  if entity.name == "ltn-provider-reader" or entity.name == "ltn-requester-reader" then
+  if entity.name == provider_reader or entity.name == requester_reader then
     -- if not set use default network id -1 (any network)
     local first_signal = entity.get_control_behavior().get_signal(1)
     if not (first_signal and first_signal.signal and first_signal.signal.name == "ltn-network-id") then
-      entity.get_or_create_control_behavior().parameters = { parameters = { { index = 1, signal = {type="virtual", name="ltn-network-id"}, count = -1 } } }
+      entity.get_or_create_control_behavior().parameters = { parameters = { { index = 1, signal = signal_networkID, count = -1 } } }
     end
 
     table.insert(global.content_combinators, entity)
@@ -155,7 +162,7 @@ end
 
 function OnEntityRemoved(event)
   local entity = event.entity
-  if entity.name == "ltn-provider-reader" or entity.name == "ltn-requester-reader" then
+  if entity.name == provider_reader or entity.name == requester_reader then
     for i=#global.content_combinators, 1, -1 do
       if global.content_combinators[i].unit_number == entity.unit_number then
         table.remove(global.content_combinators, i)

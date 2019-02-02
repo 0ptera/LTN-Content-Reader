@@ -1,23 +1,12 @@
 
--- OnTick and OnDispatcherUpdated are NOT synchronized
--- setting UpdateInterval to <= 60 ensures all combinators are updated between each trigger of OnDispatcherUpdated
-local UpdateInterval = settings.global["ltn_content_reader_update_interval"].value
-
 -- localize often used functions and strings
 local match = string.match
 local match_string = "([^,]+),([^,]+)"
-local btest = bit32.btest 
+local btest = bit32.btest
 local signal_networkID = {type="virtual", name="ltn-network-id"}
 local provider_reader = "ltn-provider-reader"
 local requester_reader = "ltn-requester-reader"
 
-
--- MOD Setting handler
-script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
-  if event.setting == "ltn_content_reader_update_interval" then
-    UpdateInterval = settings.global["ltn_content_reader_update_interval"].value
-  end
-end)
 
 -- LTN interface event functions
 function OnStopsUpdated(event)
@@ -37,37 +26,43 @@ end
 function OnDispatcherUpdated(event)
   -- ltn provides data per stop, aggregate over network and item
   global.ltn_provided = {}
-  if event.data and event.data.Provided then
-    -- data.Provided = { [item], { [stopID], count } }
-    for item, stops in pairs(event.data.Provided) do
-      for stopID, count in pairs(stops) do
-        local networkID = global.stop_network_ID[stopID]
-        if networkID then
-          global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
-          global.ltn_provided[networkID][item] = (global.ltn_provided[networkID][item] or 0) + count
-        end
+  global.ltn_requested = {}
+
+  if not event.data then
+    return
+  end
+
+  -- data.Provided = { [item], { [stopID], count } }
+  for item, stops in pairs(event.data.Provided) do
+    for stopID, count in pairs(stops) do
+      local networkID = global.stop_network_ID[stopID]
+      if networkID then
+        global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
+        global.ltn_provided[networkID][item] = (global.ltn_provided[networkID][item] or 0) + count
       end
     end
   end
 
-  if event.data and event.data.Requests then
-    global.ltn_requested = {}
-    -- data.Requests = { stopID, item, count }
-    for _, request in pairs(event.data.Requests) do
-      local networkID = global.stop_network_ID[request.stopID]
-      if networkID then
-        global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
-        global.ltn_requested[networkID][request.item] = (global.ltn_requested[networkID][request.item] or 0) - request.count
-      end
+  -- data.Requests = { stopID, item, count }
+  for _, request in pairs(event.data.Requests) do
+    local networkID = global.stop_network_ID[request.stopID]
+    if networkID then
+      global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
+      global.ltn_requested[networkID][request.item] = (global.ltn_requested[networkID][request.item] or 0) - request.count
     end
   end
+
+  -- synchronize combinator update interval with LTN
+  -- log("Updating UpdateInterval: "..tostring(global.update_interval).." << "..tostring(event.data.UpdateInterval) )
+  global.update_interval = event.data.UpdateInterval
 end
 
 -- spread out updating combinators
 function OnTick(event)
-  local offset = event.tick % UpdateInterval
+  -- global.update_interval LTN update interval are synchronized in OnDispatcherUpdated
+  local offset = event.tick % global.update_interval
   local cc_count = #global.content_combinators
-  for i=cc_count - offset, 1, -1 * UpdateInterval do
+  for i=cc_count - offset, 1, -1 * global.update_interval do
     -- log( "("..tostring(event.tick)..") on_tick updating "..i.."/"..cc_count )
     local combinator = global.content_combinators[i]
     if combinator.valid then
@@ -97,7 +92,7 @@ function Update_Combinator(combinator)
   local index = 2
 
   -- for many signals performance is better to aggregate first instead of letting factorio do it
-  local items = {} 
+  local items = {}
 
   if combinator.name == provider_reader then
     for networkID, item_data in pairs(global.ltn_provided) do
@@ -183,6 +178,10 @@ local function init_globals()
   global.ltn_provided = global.ltn_provided or {}
   global.ltn_requested = global.ltn_requested or {}
   global.content_combinators = global.content_combinators or {}
+  global.update_interval = global.update_interval or 60
+
+  -- remove unused globals froms save
+  global.last_update_tick = nil
 end
 
 local function register_events()

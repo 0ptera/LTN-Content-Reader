@@ -12,16 +12,17 @@ local requester_reader = "ltn-requester-reader"
 function OnStopsUpdated(event)
   if event.data then
     --log("Stop Data:"..serpent.block(event.data) )
-    global.stop_network_ID = {}
+    global.ltn_stops = event.data or {}
 
     -- build stop netwok_ID lookup table
-    for stopID, stop in pairs(event.data) do
-      if stop then
-        global.stop_network_ID[stopID] = stop.network_id
-      end
-    end
+    -- for stopID, stop in pairs(event.data) do
+      -- if stop then
+        -- global.stop_network_ID[stopID] = stop.network_id
+      -- end
+    -- end
   end
 end
+
 
 function OnDispatcherUpdated(event)
   -- ltn provides data per stop, aggregate over network and item
@@ -31,26 +32,48 @@ function OnDispatcherUpdated(event)
   if not event.data then
     return
   end
-
-  -- data.Provided = { [item], { [stopID], count } }
-  for item, stops in pairs(event.data.Provided) do
-    for stopID, count in pairs(stops) do
-      local networkID = global.stop_network_ID[stopID]
-      if networkID then
-        global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
+  
+  -- data.Provided_by_Stop = { [stopID], { [item], count } }
+  for stopID, items in pairs(event.data.Provided_by_Stop) do    
+    local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
+    if networkID then
+      global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
+      for item, count in pairs(items) do        
         global.ltn_provided[networkID][item] = (global.ltn_provided[networkID][item] or 0) + count
       end
     end
   end
+  
+  -- data.Provided = { [item], { [stopID], count } }
+  -- for item, stops in pairs(event.data.Provided) do
+    -- for stopID, count in pairs(stops) do
+      -- local networkID = global.stop_network_ID[stopID]
+      -- if networkID then
+        -- global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
+        -- global.ltn_provided[networkID][item] = (global.ltn_provided[networkID][item] or 0) + count
+      -- end
+    -- end
+  -- end
 
-  -- data.Requests = { stopID, item, count }
-  for _, request in pairs(event.data.Requests) do
-    local networkID = global.stop_network_ID[request.stopID]
+  -- data.Requests_by_Stop = { [stopID], { [item], count } }
+  for stopID, items in pairs(event.data.Requests_by_Stop) do
+    local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
     if networkID then
       global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
-      global.ltn_requested[networkID][request.item] = (global.ltn_requested[networkID][request.item] or 0) - request.count
+      for item, count in pairs(items) do        
+        global.ltn_requested[networkID][item] = (global.ltn_requested[networkID][item] or 0) - count
+      end
     end
   end
+  
+  -- data.Requests = { stopID, item, count }
+  -- for _, request in pairs(event.data.Requests) do
+    -- local networkID = global.stop_network_ID[request.stopID]
+    -- if networkID then
+      -- global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
+      -- global.ltn_requested[networkID][request.item] = (global.ltn_requested[networkID][request.item] or 0) - request.count
+    -- end
+  -- end
 
   -- synchronize combinator update interval with LTN
   -- log("Updating UpdateInterval: "..tostring(global.update_interval).." << "..tostring(event.data.UpdateInterval) )
@@ -173,8 +196,7 @@ end
 ---- Initialisation  ----
 do
 local function init_globals()
-  global.stop_network_ID = global.stop_network_ID or {}
-  global.ltn_contents = nil
+  global.ltn_stops = global.ltn_stops or {}
   global.ltn_provided = global.ltn_provided or {}
   global.ltn_requested = global.ltn_requested or {}
   global.content_combinators = global.content_combinators or {}
@@ -182,6 +204,8 @@ local function init_globals()
 
   -- remove unused globals froms save
   global.last_update_tick = nil
+  global.ltn_contents = nil
+  global.stop_network_ID = nil
 end
 
 local function register_events()

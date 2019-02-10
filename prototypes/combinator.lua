@@ -65,13 +65,67 @@ requester_reader_item.order = requester_reader_item.order.."c" -- sort after con
 local requester_reader_recipe = copyPrototype("recipe", "constant-combinator", "ltn-requester-reader")
 
 
+local delivery_reader_entity = copyPrototype("constant-combinator", "constant-combinator", "ltn-delivery-reader")
+delivery_reader_entity.item_slot_count = 50 -- will be overwritten in final-fixes
+delivery_reader_entity.icon = "__LTN_Content_Reader__/graphics/icons/ltn-delivery-reader.png"
+delivery_reader_entity.icon_size = 32
+delivery_reader_entity.sprites = make_4way_animation_from_spritesheet(
+  { layers =
+    {
+      {
+        filename = "__LTN_Content_Reader__/graphics/entity/ltn-delivery-reader.png",
+        width = 58,
+        height = 52,
+        frame_count = 1,
+        shift = util.by_pixel(0, 5),
+        hr_version =
+        {
+          scale = 0.5,
+          filename = "__LTN_Content_Reader__/graphics/entity/hr-ltn-delivery-reader.png",
+          width = 114,
+          height = 102,
+          frame_count = 1,
+          shift = util.by_pixel(0, 5),
+        },
+      },
+      {
+        filename = "__base__/graphics/entity/combinator/constant-combinator-shadow.png",
+        width = 50,
+        height = 34,
+        frame_count = 1,
+        shift = util.by_pixel(9, 6),
+        draw_as_shadow = true,
+        hr_version =
+        {
+          scale = 0.5,
+          filename = "__base__/graphics/entity/combinator/hr-constant-combinator-shadow.png",
+          width = 98,
+          height = 66,
+          frame_count = 1,
+          shift = util.by_pixel(8.5, 5.5),
+          draw_as_shadow = true,
+        },
+      },
+    },
+  })
+
+local delivery_reader_item = copyPrototype("item", "constant-combinator", "ltn-delivery-reader")
+delivery_reader_item.icon = "__LTN_Content_Reader__/graphics/icons/ltn-delivery-reader.png"
+delivery_reader_item.icon_size = 32
+delivery_reader_item.order = requester_reader_item.order.."d" -- sort after constant_combinator
+
+local delivery_reader_recipe = copyPrototype("recipe", "constant-combinator", "ltn-delivery-reader")
+
 data:extend({
   provider_reader_entity,
   provider_reader_item,
   provider_reader_recipe,
   requester_reader_entity,
   requester_reader_item,
-  requester_reader_recipe
+  requester_reader_recipe,
+  delivery_reader_entity,
+  delivery_reader_item,
+  delivery_reader_recipe,  
 })
 
 if data.raw["technology"]["circuit-network"] then
@@ -85,4 +139,9 @@ if data.raw["technology"]["circuit-network"] then
         type = "unlock-recipe",
         recipe = "ltn-requester-reader"
     } )
+  table.insert( data.raw["technology"]["circuit-network"].effects,
+    {
+        type = "unlock-recipe",
+        recipe = "ltn-delivery-reader"
+    } )    
 end

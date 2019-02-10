@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.1.9
+Date: 10.2.2019
+  Features:
+    - added delivery content reader
+  Changes:
+    - make use of LTN 1.9.10 interface changes
+---------------------------------------------------------------------------------------------------
 Version: 0.1.8
 Date: 2.2.2019
   Features:
@@ -34,7 +41,7 @@ Date: 4.12.2018
 Version: 0.1.2
 Date: 1.12.2018
   Bugfixes:
-    - migration script referenced wrong recipe name  
+    - migration script referenced wrong recipe name
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.1
 Date: 1.12.2018

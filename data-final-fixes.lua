@@ -17,4 +17,5 @@ if 1 + itemcount + fluidcount > 50 then
   log("[LTN Content Reader] setting combinator slots to "..tostring(1 + itemcount + fluidcount) )
   data.raw["constant-combinator"]["ltn-provider-reader"].item_slot_count = 1 + itemcount + fluidcount
   data.raw["constant-combinator"]["ltn-requester-reader"].item_slot_count = 1 + itemcount + fluidcount
+  data.raw["constant-combinator"]["ltn-delivery-reader"].item_slot_count = 1 + itemcount + fluidcount
 end

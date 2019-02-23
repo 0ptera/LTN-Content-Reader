@@ -1,2 +1,2 @@
-require ("prototypes.copyPrototype")
+require ("util.copyPrototype")
 require ("prototypes.combinator")

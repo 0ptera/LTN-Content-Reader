@@ -14,7 +14,7 @@ local content_readers = {
 -- LTN interface event functions
 function OnStopsUpdated(event)
   --log("Stop Data:"..serpent.block(event.data) )
-  global.ltn_stops = event.data or {}
+  global.ltn_stops = event.logistic_train_stops or {}
 end
 
 
@@ -24,12 +24,8 @@ function OnDispatcherUpdated(event)
   global.ltn_requested = {}
   global.ltn_deliveries = {}
 
-  if not event.data then
-    return
-  end
-
-  -- data.Provided_by_Stop = { [stopID], { [item], count } }
-  for stopID, items in pairs(event.data.Provided_by_Stop) do
+  -- event.provided_by_stop = { [stopID], { [item], count } }
+  for stopID, items in pairs(event.provided_by_stop) do
     local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
     if networkID then
       global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
@@ -39,8 +35,8 @@ function OnDispatcherUpdated(event)
     end
   end
 
-  -- data.Requests_by_Stop = { [stopID], { [item], count } }
-  for stopID, items in pairs(event.data.Requests_by_Stop) do
+  -- event.requests_by_stop = { [stopID], { [item], count } }
+  for stopID, items in pairs(event.requests_by_stop) do
     local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
     if networkID then
       global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
@@ -50,8 +46,8 @@ function OnDispatcherUpdated(event)
     end
   end
 
-  -- data.Deliveries = { trainID = {force, train, from, to, networkID, started, shipment = { item = count } } }
-  for trainID, delivery in pairs(event.data.Deliveries) do
+  -- event.deliveries = { trainID = {force, train, from, to, networkID, started, shipment = { item = count } } }
+  for trainID, delivery in pairs(event.deliveries) do
     if delivery.networkID then
       global.ltn_deliveries[delivery.networkID] = global.ltn_deliveries[delivery.networkID] or {}
       for item, count in pairs(delivery.shipment) do
@@ -60,8 +56,8 @@ function OnDispatcherUpdated(event)
     end
   end
   
-  -- synchronize combinator update interval with LTN  
-  global.update_interval = event.data.UpdateInterval
+  -- event.update_interval = LTN update interval (depends on existing ltn stops and stops per tick setting
+  global.update_interval = event.update_interval
 end
 
 -- spread out updating combinators

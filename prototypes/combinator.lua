@@ -128,20 +128,39 @@ data:extend({
   delivery_reader_recipe,  
 })
 
-if data.raw["technology"]["circuit-network"] then
-  table.insert( data.raw["technology"]["circuit-network"].effects,
+-- add to circuit-network-2 if exists otherwise create tech
+if data.raw["technology"]["circuit-network-2"] then
+  table.insert( data.raw["technology"]["circuit-network-2"].effects, { type = "unlock-recipe", recipe = "ltn-provider-reader" } )
+  table.insert( data.raw["technology"]["circuit-network-2"].effects, { type = "unlock-recipe", recipe = "ltn-requester-reader" } )
+  table.insert( data.raw["technology"]["circuit-network-2"].effects, { type = "unlock-recipe", recipe = "ltn-delivery-reader" } )
+else
+  data:extend({
     {
-        type = "unlock-recipe",
-        recipe = "ltn-provider-reader"
-    } )
-  table.insert( data.raw["technology"]["circuit-network"].effects,
-    {
-        type = "unlock-recipe",
-        recipe = "ltn-requester-reader"
-    } )
-  table.insert( data.raw["technology"]["circuit-network"].effects,
-    {
-        type = "unlock-recipe",
-        recipe = "ltn-delivery-reader"
-    } )    
+      type = "technology",
+      name = "circuit-network-2",
+      icon = "__base__/graphics/technology/circuit-network.png",
+      icon_size = 128,
+      prerequisites = {"circuit-network", "advanced-electronics"},
+      effects =
+      {
+        { type = "unlock-recipe", recipe = "ltn-provider-reader" },
+        { type = "unlock-recipe", recipe = "ltn-requester-reader" },
+        { type = "unlock-recipe", recipe = "ltn-delivery-reader" },
+      },
+      unit =
+      {
+        count = 150,
+        ingredients = {
+          {"automation-science-pack", 1},
+          {"logistic-science-pack", 1},
+        },
+        time = 30
+      },
+      order = "a-d-d"
+    }
+  })
 end
+
+
+
+

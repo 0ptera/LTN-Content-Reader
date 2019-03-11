@@ -5,9 +5,9 @@ local match_string = "([^,]+),([^,]+)"
 local btest = bit32.btest
 local signal_networkID = {type="virtual", name="ltn-network-id"}
 local content_readers = {
-  ["ltn-provider-reader"] = {table_name = "ltn_provided", multiplier = 1},
-  ["ltn-requester-reader"] = {table_name = "ltn_requested", multiplier = -1},
-  ["ltn-delivery-reader"] = {table_name = "ltn_deliveries", multiplier = 1},
+  ["ltn-provider-reader"] = {table_name = "ltn_provided"},
+  ["ltn-requester-reader"] = {table_name = "ltn_requested"},
+  ["ltn-delivery-reader"] = {table_name = "ltn_deliveries"},
 }
 
 
@@ -55,7 +55,7 @@ function OnDispatcherUpdated(event)
       end
     end
   end
-  
+
   -- event.update_interval = LTN update interval (depends on existing ltn stops and stops per tick setting
   global.update_interval = event.update_interval
 end
@@ -101,7 +101,7 @@ function Update_Combinator(combinator)
     for networkID, item_data in pairs(global[reader.table_name]) do
       if btest(selected_networkID, networkID) then
         for item, count in pairs(item_data) do
-          items[item] = (items[item] or 0) + (count * reader.multiplier)
+          items[item] = (items[item] or 0) + count
         end
       end
     end

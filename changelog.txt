@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 11.3.2019
+  Bugfixes:
+    - Request Reader showed requests as positive values
+---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 9.3.2019
   Changes:
@@ -7,7 +12,7 @@ Date: 9.3.2019
 Version: 0.2.1
 Date: 5.3.2019
   Features:
-    - moved recipes into circuit combinators 2    
+    - moved recipes into circuit combinators 2
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 23.2.2019

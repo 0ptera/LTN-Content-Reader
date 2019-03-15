@@ -179,8 +179,8 @@ end
 local function register_events()
   -- register events from LTN
   if remote.interfaces["logistic-train-network"] then
-    script.on_event(remote.call("logistic-train-network", "get_on_stops_updated_event"), OnStopsUpdated)
-    script.on_event(remote.call("logistic-train-network", "get_on_dispatcher_updated_event"), OnDispatcherUpdated)
+    script.on_event(remote.call("logistic-train-network", "on_stops_updated"), OnStopsUpdated)
+    script.on_event(remote.call("logistic-train-network", "on_dispatcher_updated"), OnDispatcherUpdated)
   end
 
   -- register game events

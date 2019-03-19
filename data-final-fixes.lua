@@ -1,3 +1,8 @@
+--[[ Copyright (c) 2018 Optera
+ * Part of LTN Content Reader
+ *
+ * See LICENSE.md in the project directory for license information.
+--]]
 
 -- sum items and fluids for number of slots required in combinator output
 local itemcount = 0

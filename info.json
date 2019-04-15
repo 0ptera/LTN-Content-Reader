@@ -1,11 +1,11 @@
 {
   "name": "LTN_Content_Reader",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "title": "LTN Content Reader",
   "author": "Optera",
 	"contact": "https://forums.factorio.com/memberlist.php?mode=viewprofile&u=21729",
   "homepage": "https://mods.factorio.com/mod/LTN_Content_Reader",
   "description": "Display LTN's Provided and Requested content for specific Network ID's as combinator output.",
 	"factorio_version": "0.17",
-	"dependencies": ["base >= 0.17.15", "OpteraLib >= 0.1.0", "LogisticTrainNetwork >= 1.10.3"]
+	"dependencies": ["base >= 0.17.31", "OpteraLib >= 0.1.4", "LogisticTrainNetwork >= 1.10.3"]
 }

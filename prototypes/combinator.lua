@@ -12,7 +12,9 @@ provider_reader_entity.icon_size = 32
 local provider_reader_item = optera_lib.copy_prototype(data.raw["item"]["constant-combinator"], "ltn-provider-reader")
 provider_reader_item.icon = "__LTN_Content_Reader__/graphics/icons/ltn-provider-reader.png"
 provider_reader_item.icon_size = 32
-provider_reader_item.order = provider_reader_item.order.."b" -- sort after constant_combinator
+provider_reader_item.subgroup = "circuit-network-2"
+provider_reader_item.order = "ltnr-a"
+-- provider_reader_item.order = provider_reader_item.order.."b" -- sort after constant_combinator
 
 local provider_reader_recipe = optera_lib.copy_prototype(data.raw["recipe"]["constant-combinator"], "ltn-provider-reader")
 
@@ -65,7 +67,9 @@ requester_reader_entity.sprites = make_4way_animation_from_spritesheet(
 local requester_reader_item = optera_lib.copy_prototype(data.raw["item"]["constant-combinator"], "ltn-requester-reader")
 requester_reader_item.icon = "__LTN_Content_Reader__/graphics/icons/ltn-requester-reader.png"
 requester_reader_item.icon_size = 32
-requester_reader_item.order = requester_reader_item.order.."c" -- sort after constant_combinator
+requester_reader_item.subgroup = "circuit-network-2"
+requester_reader_item.order = "ltnr-b"
+-- requester_reader_item.order = requester_reader_item.order.."c" -- sort after constant_combinator
 
 local requester_reader_recipe = optera_lib.copy_prototype(data.raw["recipe"]["constant-combinator"], "ltn-requester-reader")
 
@@ -117,11 +121,19 @@ delivery_reader_entity.sprites = make_4way_animation_from_spritesheet(
 local delivery_reader_item = optera_lib.copy_prototype(data.raw["item"]["constant-combinator"], "ltn-delivery-reader")
 delivery_reader_item.icon = "__LTN_Content_Reader__/graphics/icons/ltn-delivery-reader.png"
 delivery_reader_item.icon_size = 32
-delivery_reader_item.order = requester_reader_item.order.."d" -- sort after constant_combinator
+delivery_reader_item.subgroup = "circuit-network-2"
+delivery_reader_item.order = "ltnr-c"
+-- delivery_reader_item.order = requester_reader_item.order.."d" -- sort after constant_combinator
 
 local delivery_reader_recipe = optera_lib.copy_prototype(data.raw["recipe"]["constant-combinator"], "ltn-delivery-reader")
 
 data:extend({
+  {
+    type = "item-subgroup",
+    name = "circuit-network-2",
+    group = "logistics",
+    order = "g-b"
+  },
   provider_reader_entity,
   provider_reader_item,
   provider_reader_recipe,

@@ -8,7 +8,7 @@
 local match = string.match
 local match_string = "([^,]+),([^,]+)"
 local btest = bit32.btest
-local signal_networkID = {type="virtual", name="ltn-network-id"}
+local signal_network_id = {type="virtual", name="ltn-network-id"}
 local content_readers = {
   ["ltn-provider-reader"] = {table_name = "ltn_provided"},
   ["ltn-requester-reader"] = {table_name = "ltn_requested"},
@@ -31,32 +31,32 @@ function OnDispatcherUpdated(event)
 
   -- event.provided_by_stop = { [stopID], { [item], count } }
   for stopID, items in pairs(event.provided_by_stop) do
-    local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
-    if networkID then
-      global.ltn_provided[networkID] = global.ltn_provided[networkID] or {}
+    local network_id = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
+    if network_id then
+      global.ltn_provided[network_id] = global.ltn_provided[network_id] or {}
       for item, count in pairs(items) do
-        global.ltn_provided[networkID][item] = (global.ltn_provided[networkID][item] or 0) + count
+        global.ltn_provided[network_id][item] = (global.ltn_provided[network_id][item] or 0) + count
       end
     end
   end
 
   -- event.requests_by_stop = { [stopID], { [item], count } }
   for stopID, items in pairs(event.requests_by_stop) do
-    local networkID = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
-    if networkID then
-      global.ltn_requested[networkID] = global.ltn_requested[networkID] or {}
+    local network_id = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
+    if network_id then
+      global.ltn_requested[network_id] = global.ltn_requested[network_id] or {}
       for item, count in pairs(items) do
-        global.ltn_requested[networkID][item] = (global.ltn_requested[networkID][item] or 0) - count
+        global.ltn_requested[network_id][item] = (global.ltn_requested[network_id][item] or 0) - count
       end
     end
   end
 
-  -- event.deliveries = { trainID = {force, train, from, to, networkID, started, shipment = { item = count } } }
+  -- event.deliveries = { trainID = {force, train, from, to, network_id, started, shipment = { item = count } } }
   for trainID, delivery in pairs(event.deliveries) do
-    if delivery.networkID then
-      global.ltn_deliveries[delivery.networkID] = global.ltn_deliveries[delivery.networkID] or {}
+    if delivery.network_id then
+      global.ltn_deliveries[delivery.network_id] = global.ltn_deliveries[delivery.network_id] or {}
       for item, count in pairs(delivery.shipment) do
-        global.ltn_deliveries[delivery.networkID][item] = (global.ltn_deliveries[delivery.networkID][item] or 0) + count
+        global.ltn_deliveries[delivery.network_id][item] = (global.ltn_deliveries[delivery.network_id][item] or 0) + count
       end
     end
   end
@@ -88,23 +88,23 @@ function Update_Combinator(combinator)
   -- get network id from combinator parameters
   local first_signal = combinator.get_control_behavior().get_signal(1)
   local max_signals = combinator.get_control_behavior().signals_count
-  local selected_networkID = -1
+  local selected_network_id = -1
 
   if first_signal and first_signal.signal and first_signal.signal.name == "ltn-network-id" then
-    selected_networkID = first_signal.count
+    selected_network_id = first_signal.count
   else
     log("Error: combinator must have ltn-network-id set at index 1. Setting network id to -1 (any).")
   end
 
-  local signals = { { index = 1, signal = signal_networkID, count = selected_networkID } }
+  local signals = { { index = 1, signal = signal_network_id, count = selected_network_id } }
   local index = 2
 
   -- for many signals performance is better to aggregate first instead of letting factorio do it
   local items = {}
   local reader = content_readers[combinator.name]
   if reader then
-    for networkID, item_data in pairs(global[reader.table_name]) do
-      if btest(selected_networkID, networkID) then
+    for network_id, item_data in pairs(global[reader.table_name]) do
+      if btest(selected_network_id, network_id) then
         for item, count in pairs(item_data) do
           items[item] = (items[item] or 0) + count
         end
@@ -122,7 +122,7 @@ function Update_Combinator(combinator)
         signals[#signals+1] = {index = index, signal = {type=itype, name=iname}, count = count}
         index = index+1
       else
-        log("[LTN Content Reader] Error: signals in network "..selected_networkID.." exceed "..max_signals.." combinator signal slots. Not all signals will be displayed.")
+        log("[LTN Content Reader] Error: signals in network "..selected_network_id.." exceed "..max_signals.." combinator signal slots. Not all signals will be displayed.")
         break
       end
     end
@@ -139,7 +139,7 @@ function OnEntityCreated(event)
     -- if not set use default network id -1 (any network)
     local first_signal = entity.get_control_behavior().get_signal(1)
     if not (first_signal and first_signal.signal and first_signal.signal.name == "ltn-network-id") then
-      entity.get_or_create_control_behavior().parameters = { parameters = { { index = 1, signal = signal_networkID, count = -1 } } }
+      entity.get_or_create_control_behavior().parameters = { parameters = { { index = 1, signal = signal_network_id, count = -1 } } }
     end
 
     table.insert(global.content_combinators, entity)

@@ -41,10 +41,14 @@ function OnDispatcherUpdated(event)
   -- event.provided_by_stop = { [stopID], { [item], count } }
   for stopID, items in pairs(event.provided_by_stop) do
     local network_id = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
+    local surface_idx = global.ltn_stops[stopID].entity.surface.index
+
+    global.ltn_provided[surface_idx] = global.ltn_provided[surface_idx] or {}
+
     if network_id then
-      global.ltn_provided[network_id] = global.ltn_provided[network_id] or {}
+      global.ltn_provided[surface_idx][network_id] = global.ltn_provided[surface_idx][network_id] or {}
       for item, count in pairs(items) do
-        global.ltn_provided[network_id][item] = (global.ltn_provided[network_id][item] or 0) + count
+        global.ltn_provided[surface_idx][network_id][item] = (global.ltn_provided[surface_idx][network_id][item] or 0) + count
       end
     end
   end
@@ -52,20 +56,28 @@ function OnDispatcherUpdated(event)
   -- event.requests_by_stop = { [stopID], { [item], count } }
   for stopID, items in pairs(event.requests_by_stop) do
     local network_id = global.ltn_stops[stopID] and global.ltn_stops[stopID].network_id
+    local surface_idx = global.ltn_stops[stopID].entity.surface.index
+
+    global.ltn_requested[surface_idx] = global.ltn_requested[surface_idx] or {}
+
     if network_id then
-      global.ltn_requested[network_id] = global.ltn_requested[network_id] or {}
+      global.ltn_requested[surface_idx][network_id] = global.ltn_requested[surface_idx][network_id] or {}
       for item, count in pairs(items) do
-        global.ltn_requested[network_id][item] = (global.ltn_requested[network_id][item] or 0) - count
+        global.ltn_requested[surface_idx][network_id][item] = (global.ltn_requested[surface_idx][network_id][item] or 0) - count
       end
     end
   end
 
   -- event.deliveries = { trainID = {force, train, from, to, network_id, started, shipment = { item = count } } }
   for trainID, delivery in pairs(event.deliveries) do
+    local surface_idx = global.ltn_stops[delivery.from_id].entity.surface.index
+
+    global.ltn_deliveries[surface_idx] = global.ltn_deliveries[surface_idx] or {}
+
     if delivery.network_id then
-      global.ltn_deliveries[delivery.network_id] = global.ltn_deliveries[delivery.network_id] or {}
+      global.ltn_deliveries[surface_idx][delivery.network_id] = global.ltn_deliveries[surface_idx][delivery.network_id] or {}
       for item, count in pairs(delivery.shipment) do
-        global.ltn_deliveries[delivery.network_id][item] = (global.ltn_deliveries[delivery.network_id][item] or 0) + count
+        global.ltn_deliveries[surface_idx][delivery.network_id][item] = (global.ltn_deliveries[surface_idx][delivery.network_id][item] or 0) + count
       end
     end
   end
@@ -98,6 +110,7 @@ function Update_Combinator(combinator)
   local first_signal = combinator.get_control_behavior().get_signal(1)
   local max_signals = combinator.get_control_behavior().signals_count
   local selected_network_id = default_network
+  local surface_idx = combinator.surface.index
 
   if first_signal and first_signal.signal and first_signal.signal.name == "ltn-network-id" then
     selected_network_id = first_signal.count
@@ -112,7 +125,9 @@ function Update_Combinator(combinator)
   local items = {}
   local reader = content_readers[combinator.name]
   if reader then
-    for network_id, item_data in pairs(global[reader.table_name]) do
+    global[reader.table_name][surface_idx] = global[reader.table_name][surface_idx] or {}
+
+    for network_id, item_data in pairs(global[reader.table_name][surface_idx]) do
       if btest(selected_network_id, network_id) then
         for item, count in pairs(item_data) do
           items[item] = (items[item] or 0) + count
